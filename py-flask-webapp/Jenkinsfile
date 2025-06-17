@@ -9,16 +9,14 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
-                echo "📥 Cloning source code from GitHub..."
                 git url: 'https://github.com/kishoreg9988/assignment-4.git', branch: 'sample-py-webapp'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo "🐳 Building Docker image for the Flask app..."
                 sh '''
                     docker stop $CONTAINER_NAME || true
                     docker rm $CONTAINER_NAME || true
@@ -28,18 +26,17 @@ pipeline {
             }
         }
 
-        stage('Run Unit Tests') {
+        stage('Run Pytest') {
             steps {
-                echo "🧪 Running unit tests using unittest module..."
+                echo "🧪 Running tests with pytest..."
                 sh '''
-                    docker run --rm $IMAGE_NAME python3 -m unittest discover -s tests -p '*_test.py'
+                    docker run --rm $IMAGE_NAME pytest tests/
                 '''
             }
         }
 
-        stage('Deploy Container') {
+        stage('Deploy Flask App') {
             steps {
-                echo "🚀 Deploying Flask container..."
                 sh '''
                     docker run -d -p $PORT:5000 --name $CONTAINER_NAME $IMAGE_NAME
                 '''
@@ -48,10 +45,9 @@ pipeline {
 
         stage('Health Check') {
             steps {
-                echo "🔍 Checking if app is live..."
                 sh '''
-                    sleep 5
-                    curl -f http://localhost:$PORT || (echo "❌ Health check failed!" && exit 1)
+                    sleep 3
+                    curl -f http://localhost:$PORT || (echo "App not healthy!" && exit 1)
                 '''
             }
         }
@@ -59,13 +55,12 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline executed successfully!'
+            echo '✅ Pipeline completed successfully.'
         }
         failure {
-            echo '❌ Pipeline failed. Check above logs.'
+            echo '❌ Pipeline failed. Check logs.'
         }
         always {
-            echo '🧹 Cleaning up dangling Docker images...'
             sh 'docker image prune -f'
         }
     }
