@@ -9,6 +9,12 @@ pipeline {
 
     stages {
 
+        stage('Build') {
+            steps {
+                echo 'Build triggered by GitHub push!'
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git url: 'https://github.com/kishoreg9988/assignment-4.git', branch: 'sample-py-webapp'
